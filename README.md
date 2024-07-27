@@ -14,6 +14,8 @@ pip install --upgrade pip setuptools wheel
 # Instalacja pakietu crewai za pomocą pip
 
 pip install crewai
+ pip install transformer
+pip install torch
 
 # Jeśli napotkasz błąd podczas budowania pakietu chroma-hnswlib, zainstaluj Microsoft Visual C++ Build Tools:
 

@@ -1,67 +1,53 @@
-import os
 from crewai import Agent, Task, Process, Crew
-from crewai.agent import ChatOpenAI  # Poprawiony import
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-openai_api_key = "A4gZRQMCjEBpsFiNxwaT3BlbkFJqxmNhlpRiz2B0ORcTvvc"
+# Konfiguracja modelu Hugging Face
+model_name = "gpt2"  # Możesz zmienić na dowolny model dostępny na Hugging Face
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
 
-# Ustawienie zmiennej środowiskowej
-os.environ['OPENAI_API_KEY'] = openai_api_key
+# Przykład użycia modelu Hugging Face
+def generate_text(prompt):
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(inputs.input_ids, max_length=50)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-api = os.environ.get('OPENAI_API_KEY')
+# Przykładowe użycie funkcji generate_text
+prompt = "Once upon a time"
+generated_text = generate_text(prompt)
+print(generated_text)
 
+# Konfiguracja agenta z modelem Hugging Face
+class HuggingFaceAgent(Agent):
+    def __init__(self, role, goal, backstory, verbose=True, allow_delegation=True):
+        super().__init__(role=role, goal=goal, backstory=backstory, verbose=verbose, allow_delegation=allow_delegation)
+        self.model_name = model_name
+        self.tokenizer = tokenizer
+        self.model = model
 
-Trener = Agent(
+    def generate_response(self, prompt):
+        return generate_text(prompt)
+
+# Ensure the required fields are passed correctly
+Trener = HuggingFaceAgent(
     role="Trener Kulturystyki",
-    model=ChatOpenAI(openai_api_key=openai_api_key),
     goal="Przyrost masy mięściowej",
     backstory="Sprawdził wszystkie rodzaje diety i najlepsze efekty uzyskał na carnivore diet",
     verbose=True,
     allow_delegation=True,
 )
-Programista = Agent(
-    role="Trener Programowania",
-    model=ChatOpenAI(openai_api_key=openai_api_key),
-    goal="Uzyskanie crtyfkatu ISTQB",
-    backstory="Posiada wszystkie niezbędne szkolenia, chce zdobyć certyfikat",
-    verbose=True,
-    allow_delegation=True,
-)
 
-task = Task(
+# Utwórz zadanie
+zadanie_treningowe = Task(
     name="Trening",
-    description="Przygotuj plan treningowy",
-    duration=60,
-    priority=5,
-    deadline="2021-12-31",
-    agent=Trener,
-    expected_output="Plan treningowy na 4 tygodnie"  # Dodanie wymaganego pola
+    description="Przygotuj plan treningowy"
 )
 
-task1 = Task(
-    name="Dieta",
-    description="Przygotuj plan dietetyczny",
-    duration=60,
-    priority=5,
-    deadline="2021-12-31",
-    agent=Trener,
-    expected_output="Plan dietetyczny na 4 tygodnie"  # Dodanie wymaganego pola
-)
-
-task2 = Task(
-    name="Szkolenie",
-    description="Przygotuj się do egzaminu",
-    duration=60,
-    priority=5,
-    deadline="2021-12-31",
-    agent=Programista,
-    expected_output="Plan szkoleniowy na 4 tygodnie"  # Dodanie wymaganego pola
-)
-
+# Utwórz załogę
 crew = Crew(    
-    agents=[Programista, Trener],
-    tasks=[task, task1, task2],
+    agents=[Trener],
+    tasks=[zadanie_treningowe],
     verbose=2,
-    process=Process.sequential,
 )
 
 # Dodanie logowania przed wywołaniem kickoff
@@ -72,5 +58,6 @@ print('Process:', crew.process)
 print('Verbose:', crew.verbose)
 
 result = crew.kickoff()
+
 print('###################################')
 print(result)
