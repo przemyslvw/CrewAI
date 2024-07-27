@@ -2,7 +2,7 @@ from crewai import Agent, Task, Process, Crew
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Konfiguracja modelu Hugging Face
-model_name = "gpt2"  # Możesz zmienić na dowolny model dostępny na Hugging Face
+model_name = "distilgpt2"  # Możesz zmienić na dowolny model dostępny na Hugging Face
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
@@ -32,9 +32,7 @@ class HuggingFaceAgent(Agent):
 Trener = HuggingFaceAgent(
     role="Trener Kulturystyki",
     goal="Przyrost masy mięściowej",
-    backstory="Sprawdził wszystkie rodzaje diety i najlepsze efekty uzyskał na carnivore diet",
-    verbose=True,
-    allow_delegation=True,
+    backstory="Sprawdził wszystkie rodzaje diety i najlepsze efekty uzyskał na carnivore diet"
 )
 
 # Utwórz zadanie
